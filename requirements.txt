@@ -9,3 +9,7 @@ pandas==1.5.1
 seaborn==0.12.1
 numpy>=1.22
 ipdb==0.13.9
+
+# For converting zod to voc-type annotations
+fiftyone==0.23.6
+zod==0.3.7
