@@ -40,7 +40,7 @@ def get_args_parser():
     parser.add_argument('--lr_backbone', default=2e-5, type=float)
     parser.add_argument('--lr_linear_proj_names', default=['reference_points', 'sampling_offsets'], type=str, nargs='+')
     parser.add_argument('--lr_linear_proj_mult', default=0.1, type=float)
-    parser.add_argument('--batch_size', default=5, type=int)
+    parser.add_argument('--batch_size', default=1, type=int)
     parser.add_argument('--weight_decay', default=1e-4, type=float)
     parser.add_argument('--epochs', default=51, type=int)
     parser.add_argument('--lr_drop', default=35, type=int)
@@ -162,9 +162,9 @@ def get_args_parser():
 def main(args):
     if len(args.wandb_project)>0:
         if len(args.wandb_name)>0:
-            wandb.init(project=args.wandb_project, entity="marvl", group=args.wandb_name)
+            wandb.init(project=args.wandb_project, entity="hanna-olsson", group=args.wandb_name)
         else:
-            wandb.init(project=args.wandb_project, entity="marvl")
+            wandb.init(project=args.wandb_project, entity="hanna-olsson")
         wandb.config = args
     #else:
     #    wandb=None
@@ -274,6 +274,8 @@ def main(args):
         args.start_epoch = checkpoint['epoch'] + 1
         if args.eval:
             test_stats, coco_evaluator = evaluate(model, criterion, postprocessors, data_loader_val, base_ds, device, args.output_dir, args)
+            if args.output_dir:
+                utils.save_on_master(coco_evaluator.coco_eval["bbox"].eval, output_dir / "eval.pth")
             return
         
         

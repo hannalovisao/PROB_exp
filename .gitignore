@@ -137,4 +137,10 @@ exps/
 # ResNet 
 models/dino_resnet50_pretrain.pth
 
+# Get Docker 
+get-docker.sh
+
+# wandb
+wandb/
+
 
