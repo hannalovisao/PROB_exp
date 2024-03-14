@@ -1,6 +1,6 @@
 # Start with an Ubuntu base image
 #FROM nvidia/cuda:12.3.2-cudnn9-devel-ubuntu22.04
-FROM nvidia/cuda:11.3-cudnn9-devel-ubuntu16.04
+FROM nvidia/cuda:11.3.1-cudnn8-devel-ubuntu20.04
 # Avoid prompts from apt during build
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -32,7 +32,7 @@ COPY . /app
 WORKDIR /app
 
 # Compile CUDA operators (assuming CUDA is set up externally, if needed)
-RUN cd models/ops && sh ./make.sh
+# RUN cd models/ops && sh ./make.sh
 
 # The command to run your application, adapt as necessary
 # CMD ["bash", "./run.sh"]
