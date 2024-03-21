@@ -102,19 +102,19 @@ VOC_COCO_CLASS_NAMES["VOC2007"] = tuple(itertools.chain(VOC_CLASS_NAMES, T2_CLAS
 #### ZOD #### (Without other/inconclusive)
 
 T1_ZOD = [
-    "Car", "Van", "Truck", "Animal"
+    "Car", "Pedestrian", "Bicycle", "Van"
     ]
 
 T2_ZOD = [
-    "Trailer", "Bus", "HeavyEquip", "Weelchair"
+    "Truck", "Trailer"
 ]
 
 T3_ZOD = [
-    "TramTrain", "Bicycle", "Motorcycle"
+    "TramTrain", "Motorcycle", "Stroller", "HeavyEquip"
 ]
 
 T4_ZOD = [
-    "Stroller", "PersonalTransporter", "Pedestrian"
+    "Bus", "PersonalTransporter", "Animal", "Wheelchair"
 ]
 
 VOC_COCO_CLASS_NAMES["ZOD"] = tuple(itertools.chain(T1_ZOD, T2_ZOD, T3_ZOD, T4_ZOD, UNK_CLASS))
