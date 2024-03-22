@@ -100,7 +100,7 @@ def get_args_parser():
     parser.add_argument('--focal_alpha', default=0.25, type=float)
     
     # dataset parameters
-    parser.add_argument('--coco_panoptic_path', type=str)
+    parser.add_argument('--coco_panoptic_path', type=str) #Chnage to None
     parser.add_argument('--remove_difficult', action='store_true')
     parser.add_argument('--output_dir', default='',
                         help='path where to save, empty for no saving')
@@ -129,9 +129,9 @@ def get_args_parser():
     parser.add_argument('--nc_loss_coef', default=2, type=float)
     parser.add_argument('--train_set', default='', help='training txt files')
     parser.add_argument('--test_set', default='', help='testing txt files')
-    parser.add_argument('--num_classes', default=81, type=int)
+    parser.add_argument('--num_classes', default=15, type=int) #Changed to 15 from 81 
     parser.add_argument('--nc_epoch', default=0, type=int)
-    parser.add_argument('--dataset', default='OWDETR', help='defines which dataset is used. Built for: {TOWOD, OWDETR, VOC2007}')
+    parser.add_argument('--dataset', default='ZOD', help='defines which dataset is used. Built for: {TOWOD, OWDETR, VOC2007}') #Changed from OWDETR to ZOD 
     parser.add_argument('--data_root', default='./data/OWOD', type=str)
     parser.add_argument('--unk_conf_w', default=1.0, type=float)
 
@@ -141,7 +141,7 @@ def get_args_parser():
     
     # logging
     parser.add_argument('--wandb_name', default='', type=str)
-    parser.add_argument('--wandb_project', default='PROB_OWOD', type=str)
+    parser.add_argument('--wandb_project', default='PROB_ZOD', type=str) #Changed from PROB_OWOD to PROB_ZOD
     
     # model hyperparameters
     parser.add_argument('--obj_loss_coef', default=1, type=float)
