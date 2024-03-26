@@ -50,9 +50,9 @@ def main():
     # zod_frames_list = list(zod_frames.get_all_ids())
 
     training_frames = list(zod_frames.get_split(constants.TRAIN))
-    # validation_frames = list(zod_frames.get_split(constants.VAL))
+    validation_frames = list(zod_frames.get_split(constants.VAL))
 
-    for idx in tqdm(training_frames):
+    for idx in tqdm(training_frames + validation_frames):
 
         zod_frame = zod_frames[idx]
 
@@ -99,7 +99,7 @@ def main():
                     dimensions=list(dimensions),
                     location=list(location),
                     rotation=list(rotation),
-                    label=anno.name,
+                    label=anno.object_type,
                 )
 
                 detections_3d.append(detection_3d)
@@ -107,7 +107,7 @@ def main():
                 # 2D boxes
                 detection_2d = fo.Detection(
                     bounding_box=normalize_bbox(anno.box2d.xywh),
-                    label=anno.name,
+                    label=anno.object_type,
                 )
                 
                 detections_2d.append(detection_2d)

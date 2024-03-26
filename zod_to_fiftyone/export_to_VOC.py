@@ -23,6 +23,7 @@ def main():
         export_dir=dataset_export_dir,
         dataset_type=fo.types.VOCDetectionDataset,
         #label_field="ground_truth",  # This is the default field where labels are stored
+        export_media=False
     )
 
 
