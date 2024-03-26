@@ -236,6 +236,8 @@ class OWDetection(VisionDataset):
             bbox = [float(bbox[x]) for x in ["xmin", "ymin", "xmax", "ymax"]]
             bbox[0] -= 1.0
             bbox[1] -= 1.0
+            print("CLS: ", cls)
+            print("CLASS_NAMES", self.CLASS_NAMES)
             instance = dict(
                 category_id=self.CLASS_NAMES.index(cls),
                 bbox=bbox,
