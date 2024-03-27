@@ -84,36 +84,51 @@ def main():
         detections_2d = []
 
         for anno in annotations:
-            if anno.box3d is not None:
-                # 3D boxes
-                location = anno.box3d.center
-                dimensions = anno.box3d.size
+             
+              # 2D boxes
+            detection_2d = fo.Detection(
+                bounding_box=normalize_bbox(anno.box2d.xywh),
+                label=anno.object_type,
+            )
+            
+            detections_2d.append(detection_2d)
 
-                qw = anno.box3d.orientation[0]
-                qx = anno.box3d.orientation[1]
-                qy = anno.box3d.orientation[2]
-                qz = anno.box3d.orientation[3]
-                rotation = quaternion_to_euler(qx, qy, qz, qw)
+        '''
+        if anno.box3d is not None:
+            # 3D boxes
+            location = anno.box3d.center
+            dimensions = anno.box3d.size
 
-                detection_3d = fo.Detection(
-                    dimensions=list(dimensions),
-                    location=list(location),
-                    rotation=list(rotation),
-                    label=anno.object_type,
-                )
+            qw = anno.box3d.orientation[0]
+            qx = anno.box3d.orientation[1]
+            qy = anno.box3d.orientation[2]
+            qz = anno.box3d.orientation[3]
+            rotation = quaternion_to_euler(qx, qy, qz, qw)
 
-                detections_3d.append(detection_3d)
+            detection_3d = fo.Detection(
+                dimensions=list(dimensions),
+                location=list(location),
+                rotation=list(rotation),
+                label=anno.object_type,
+            )
 
-                # 2D boxes
-                detection_2d = fo.Detection(
-                    bounding_box=normalize_bbox(anno.box2d.xywh),
-                    label=anno.object_type,
-                )
-                
-                detections_2d.append(detection_2d)
+            detections_3d.append(detection_3d)
+            
 
-            else:
-                pass
+            # 2D boxes
+            detection_2d = fo.Detection(
+                bounding_box=normalize_bbox(anno.box2d.xywh),
+                label=anno.object_type,
+            )
+            
+            detections_2d.append(detection_2d)
+
+        else:
+            pass
+        '''
+           
+             
+            
 
         group = fo.Group()
         samples = [
