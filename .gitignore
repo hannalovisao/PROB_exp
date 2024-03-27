@@ -145,6 +145,9 @@ wandb/
 
 # nohup.out
 zod_to_fiftyone/nohup.out
+nohup.out
+
+
 
 
 
