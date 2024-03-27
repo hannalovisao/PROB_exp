@@ -120,7 +120,7 @@ T4_ZOD = [
 VOC_COCO_CLASS_NAMES["ZOD"] = tuple(itertools.chain(T1_ZOD, T2_ZOD, T3_ZOD, T4_ZOD, UNK_CLASS))
 
 
-print(VOC_COCO_CLASS_NAMES)
+#print(VOC_COCO_CLASS_NAMES)
 
 class OWDetection(VisionDataset):
     """`OWOD in Pascal VOC format <http://host.robots.ox.ac.uk/pascal/VOC/>`_ Detection Dataset.
@@ -228,23 +228,24 @@ class OWDetection(VisionDataset):
         image_id = target['annotation']['filename']
         instances = []
         for obj in target['annotation']['object']:
-            cls = obj["name"]
+            if obj["name"] in self.CLASS_NAMES:
+                cls = obj["name"]
 
-            if cls in VOC_CLASS_NAMES_COCOFIED:
-                cls = BASE_VOC_CLASS_NAMES[VOC_CLASS_NAMES_COCOFIED.index(cls)]
-            bbox = obj["bndbox"]
-            bbox = [float(bbox[x]) for x in ["xmin", "ymin", "xmax", "ymax"]]
-            bbox[0] -= 1.0
-            bbox[1] -= 1.0
-            print("CLS: ", cls)
-            print("CLASS_NAMES", self.CLASS_NAMES)
-            instance = dict(
-                category_id=self.CLASS_NAMES.index(cls),
-                bbox=bbox,
-                area=(bbox[2] - bbox[0]) * (bbox[3] - bbox[1]),
-                image_id=img_id
-            )
-            instances.append(instance)
+                if cls in VOC_CLASS_NAMES_COCOFIED:
+                    cls = BASE_VOC_CLASS_NAMES[VOC_CLASS_NAMES_COCOFIED.index(cls)]
+                bbox = obj["bndbox"]
+                bbox = [float(bbox[x]) for x in ["xmin", "ymin", "xmax", "ymax"]]
+                bbox[0] -= 1.0
+                bbox[1] -= 1.0
+                instance = dict(
+                    category_id=self.CLASS_NAMES.index(cls),
+                    bbox=bbox,
+                    area=(bbox[2] - bbox[0]) * (bbox[3] - bbox[1]),
+                    image_id=img_id
+                )
+                instances.append(instance)
+        print("IMAGE_ID: ", img_id)
+        print("INSTANCES: ", instances)
         return target, instances
 
     def extract_fns(self, image_set, voc_root):
@@ -303,6 +304,7 @@ class OWDetection(VisionDataset):
 
         image_set = self.transforms[0]
         img = Image.open(self.images[index]).convert('RGB')
+        print("IMAGE: ", self.images[index])
         target, instances = self.load_instances(self.imgids[index])
         if 'train' in image_set:
             instances = self.remove_prev_class_and_unk_instances(instances)
