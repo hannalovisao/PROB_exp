@@ -143,4 +143,9 @@ get-docker.sh
 # wandb
 wandb/
 
+# nohup.out
+zod_to_fiftyone/nohup.out
+
+
+
 
