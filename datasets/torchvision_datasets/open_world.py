@@ -244,8 +244,6 @@ class OWDetection(VisionDataset):
                     image_id=img_id
                 )
                 instances.append(instance)
-        print("IMAGE_ID: ", img_id)
-        print("INSTANCES: ", instances)
         return target, instances
 
     def extract_fns(self, image_set, voc_root):
@@ -304,7 +302,6 @@ class OWDetection(VisionDataset):
 
         image_set = self.transforms[0]
         img = Image.open(self.images[index]).convert('RGB')
-        print("IMAGE: ", self.images[index])
         target, instances = self.load_instances(self.imgids[index])
         if 'train' in image_set:
             instances = self.remove_prev_class_and_unk_instances(instances)
