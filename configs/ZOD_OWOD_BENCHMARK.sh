@@ -8,7 +8,24 @@ EXP_DIR=exps/ZOD/PROB
 PY_ARGS=${@:1}
 WANDB_NAME=PROB_ZOD
 
-python -u main_open_world.py \
+#!/bin/bash
+
+# Try to use python3 by default
+if command -v python3 &>/dev/null; then
+    PYTHON_CMD=python3
+elif command -v python &>/dev/null; then
+    # Fallback to python if python3 is not available
+    PYTHON_CMD=python
+else
+    echo "Python is not installed."
+    exit 1
+fi
+
+# Use $PYTHON_CMD for your Python command
+echo "Using $PYTHON_CMD"
+$PYTHON_CMD -c "print('Hello, World!')"
+
+$PYTHON_CMD -u main_open_world.py \
     --output_dir "${EXP_DIR}/t1" --dataset ZOD --PREV_INTRODUCED_CLS 0 --CUR_INTRODUCED_CLS 4\
     --train_set 'zod_t1_train' --test_set 'zod_all_task_test' --epochs 41\
     --model_type 'prob' --obj_loss_coef 8e-4 --obj_temp 1.3\
