@@ -1,2 +1,6 @@
 # Ignore JPEGImages directory
 data/OWOD/JPEGImages
+data/OWOD/JPEGImages_full
+data/zod
+data/OWOD/Annotations
+data/OWOD/Annotations_full
