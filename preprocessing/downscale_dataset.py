@@ -5,7 +5,7 @@ import xmltodict
 
 # Specify the source and destination directories
 source_dir = "C:/Users/lukas/Documents/kod/OWOD/PROB/PROB_exp/data/zodmini/data"
-destination_dir = "C:/Users/lukas/Documents/kod/OWOD/PROB/PROB_exp/data/zodmini_scaled/data"
+destination_dir = "C:/Users/lukas/Documents/kod/OWOD/PROB/PROB_exp/data/zodmini_scaled/JPEGImages"
 target_width = 800  # Target width in pixels
 
 # Create the destination directory if it does not exist
@@ -35,7 +35,7 @@ for filename in os.listdir(source_dir):
 print("Processing complete.")
 
 source_annotations_dir = "C:/Users/lukas/Documents/kod/OWOD/PROB/PROB_exp/data/zodmini/labels"
-destination_annotations_dir = "C:/Users/lukas/Documents/kod/OWOD/PROB/PROB_exp/data/zodmini_scaled/labels"
+destination_annotations_dir = "C:/Users/lukas/Documents/kod/OWOD/PROB/PROB_exp/data/zodmini_scaled/Annotations"
 
 import xmltodict
 import os

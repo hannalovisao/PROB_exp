@@ -16,56 +16,55 @@ crop_height = 600  # Height of the crop
 def main():
     crop_and_save_images(source_dir, destination_dir, crop_width, crop_height)
 
-def adjust_annotation(source_dir, x_start, y_start, crop_width, crop_height, destination_dir):
+def adjust_annotation(source_dir, filename, x_start, y_start, crop_width, crop_height, destination_dir):
     """
     Adjust the VOC annotation for the cropped area of an image.
     """
-
-    Path(destination_dir).mkdir(parents=True, exist_ok=True)
-
-    for filename in os.listdir(source_dir):
-        
+    
         # Construct the full file path
-        file_path = source_dir + "/" + filename
-        destination_file_path = destination_dir + "/" + filename
-        print('file path: ' + file_path)
-        print('destination file path: ' + destination_file_path)
+    file_path = source_dir + "/" + filename
+    destination_file_path = destination_dir + "/" + filename
+    print('file path: ' + file_path)
+    print('destination file path: ' + destination_file_path)
 
 
-        with open(file_path) as fd:
-            doc = xmltodict.parse(fd.read())
+    with open(file_path) as fd:
+        doc = xmltodict.parse(fd.read())
+    
+    # Update image size in annotation
+    doc['annotation']['size']['width'] = str(crop_width)
+    doc['annotation']['size']['height'] = str(crop_height)
+    
+    objects = doc['annotation']['object'] if 'object' in doc['annotation'] else []
+    if not isinstance(objects, list):  # Make sure objects is a list
+        objects = [objects]
+    
+    # Adjust bounding boxes or remove the object if it's outside the crop
+    new_objects = []
+    for obj in objects:
+        bbox = obj['bndbox']
+        xmin = max(0, int(bbox['xmin']) - x_start)
+        ymin = max(0, int(bbox['ymin']) - y_start)
+        xmax = min(crop_width, int(bbox['xmax']) - x_start)
+        ymax = min(crop_height, int(bbox['ymax']) - y_start)
         
-        # Update image size in annotation
-        doc['annotation']['size']['width'] = str(crop_width)
-        doc['annotation']['size']['height'] = str(crop_height)
-        
-        objects = doc['annotation']['object'] if 'object' in doc['annotation'] else []
-        if not isinstance(objects, list):  # Make sure objects is a list
-            objects = [objects]
-        
-        # Adjust bounding boxes or remove the object if it's outside the crop
-        new_objects = []
-        for obj in objects:
-            bbox = obj['bndbox']
-            xmin = max(0, int(bbox['xmin']) - x_start)
-            ymin = max(0, int(bbox['ymin']) - y_start)
-            xmax = min(crop_width, int(bbox['xmax']) - x_start)
-            ymax = min(crop_height, int(bbox['ymax']) - y_start)
-            
-            # Keep the object only if it's still within the cropped area
-            if xmax > 0 and ymax > 0 and xmin < crop_width and ymin < crop_height:
-                bbox['xmin'] = str(xmin)
-                bbox['ymin'] = str(ymin)
-                bbox['xmax'] = str(xmax)
-                bbox['ymax'] = str(ymax)
-                new_objects.append(obj)
-        
-        doc['annotation']['object'] = new_objects
-        
-        # Write adjusted annotation to the destination directory
-        annotation_filename = os.path.basename(file_path)
-        with open(destination_file_path, 'w') as fd:
-            fd.write(xmltodict.unparse(doc, pretty=True))
+        # Keep the object only if it's still within the cropped area
+        if xmax > 0 and ymax > 0 and xmin < crop_width and ymin < crop_height:
+            bbox['xmin'] = str(xmin)
+            bbox['ymin'] = str(ymin)
+            bbox['xmax'] = str(xmax)
+            bbox['ymax'] = str(ymax)
+
+            obj['bndbox'] = bbox
+
+            new_objects.append(obj)
+    
+    doc['annotation']['object'] = new_objects
+    
+    # Write adjusted annotation to the destination directory
+    annotation_filename = os.path.basename(file_path)
+    with open(destination_file_path, 'w') as fd:
+        fd.write(xmltodict.unparse(doc, pretty=True))
 
 def crop_and_save_images(source_dir, destination_dir, crop_width, crop_height, y_padding = [800,450]):
     """
@@ -78,7 +77,6 @@ def crop_and_save_images(source_dir, destination_dir, crop_width, crop_height, y
     - crop_width, crop_height: Dimensions of the cropped images.
     """
     # Create the destination directory if it does not exist
-    Path(destination_dir).mkdir(parents=True, exist_ok=True)
     print('source dir: '   + source_dir)
     source_data_dir = source_dir + "/data"#os.path.join(source_dir, '/data')
     source_labels_dir = source_dir + "/labels"
@@ -86,6 +84,11 @@ def crop_and_save_images(source_dir, destination_dir, crop_width, crop_height, y
     destination_labels_dir = destination_dir + "/labels"
     print('data dir: '   + source_data_dir)
     print('Destination labels dir: ' + destination_labels_dir)
+    
+    Path(destination_dir).mkdir(parents=True, exist_ok=True)
+    Path(destination_data_dir).mkdir(parents=True, exist_ok=True)
+    Path(destination_labels_dir).mkdir(parents=True, exist_ok=True)
+
     # Iterate through all files in the source directory
     for filename in os.listdir(source_data_dir):
         if not filename.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif')):
@@ -119,7 +122,7 @@ def crop_and_save_images(source_dir, destination_dir, crop_width, crop_height, y
         cv2.imwrite(os.path.join(destination_data_dir, filename), cropped_image)
 
         if os.path.exists(source_labels_dir):
-            adjust_annotation(source_labels_dir, x_start, y_start, crop_width, crop_height, destination_labels_dir)
+            adjust_annotation(source_labels_dir, filename[:-3]+'xml', x_start, y_start, crop_width, crop_height, destination_labels_dir)
 
 if __name__ == '__main__':
     main()

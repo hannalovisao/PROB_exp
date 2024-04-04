@@ -1,6 +1,6 @@
 dataset_root: "/mnt/ml-data-storage/jens/zod"  # point this to the root folder of the zod dataset you are using
 # dataset_root: "/mnt/ml-data-storage/jens/zodmini" # point this to the root folder of the zod dataset you are using
-dataset_export_dir: "../data/zod"
+dataset_export_dir: "../data/zodmini"
 dataset_version: "full" # mini or full
 dataset_name: "zod" # you can change this to anything you would like
 dataset_persistent: True # if true, dataset will be saved locally for later use
