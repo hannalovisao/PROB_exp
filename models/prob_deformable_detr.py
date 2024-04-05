@@ -582,7 +582,15 @@ class ExemplarSelection(nn.Module):
 
         image_sorted_scores = {}
         for i in range(len(targets)):
+            #print('Target: ', targets[i])
+            image_id_chars = [chr(int(c)) for c in targets[i]['org_image_id']]
+            image_id_str = ''.join(image_id_chars)
+            #print('Image_id:', image_id_str)
+            #print(f"Shape of prob: {prob.shape}")
+            #print(f"Shape of indices[i][0]: {indices[i][0].shape}")
+            #print(f"Shape of targets[i]['labels']: {targets[i]['labels'].shape}")
             image_sorted_scores[''.join([chr(int(c)) for c in targets[i]['org_image_id']])] = {'labels':targets[i]['labels'].cpu().numpy(),"scores": prob[i,indices[i][0],targets[i]['labels']].detach().cpu().numpy()}
+
         return [image_sorted_scores]
 
     def forward(self, samples, outputs, targets):

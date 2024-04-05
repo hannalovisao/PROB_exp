@@ -26,8 +26,8 @@ echo "Using $PYTHON_CMD"
 $PYTHON_CMD -c "print('Hello, World!')"
 
 $PYTHON_CMD -u main_open_world.py \
-    --output_dir "${EXP_DIR}/t1" --dataset ZOD --PREV_INTRODUCED_CLS 0 --CUR_INTRODUCED_CLS 4\
-    --train_set 'zod_t1_train' --test_set 'zod_all_task_test' --epochs 41\
+    --output_dir "${EXP_DIR}/t1" --dataset ZOD --PREV_INTRODUCED_CLS 0 --CUR_INTRODUCED_CLS 14\
+    --train_set 'zod_train' --test_set 'zod_all_task_test' --epochs 10\
     --model_type 'prob' --obj_loss_coef 8e-4 --obj_temp 1.3\
     --wandb_name "${WANDB_NAME}_t1" --exemplar_replay_selection --exemplar_replay_max_length 850\
     --exemplar_replay_dir ${WANDB_NAME} --exemplar_replay_cur_file "learned_zod_t1_ft.txt"\
