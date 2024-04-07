@@ -35,7 +35,7 @@ $PYTHON_CMD -u main_open_world.py \
     
 
 # PY_ARGS=${@:1}
-# python -u main_open_world.py \
+# $PYTHON_CMD -u main_open_world.py \
 #     --output_dir "${EXP_DIR}/t2" --dataset TOWOD --PREV_INTRODUCED_CLS 20 --CUR_INTRODUCED_CLS 20\
 #     --train_set 'owod_t2_train' --test_set 'owod_all_task_test' --epochs 51\
 #     --model_type 'prob' --obj_loss_coef 8e-4 --obj_temp 1.3 --freeze_prob_model\
@@ -47,7 +47,7 @@ $PYTHON_CMD -u main_open_world.py \
     
 
 # PY_ARGS=${@:1}
-# python -u main_open_world.py \
+# $PYTHON_CMD -u main_open_world.py \
 #     --output_dir "${EXP_DIR}/t2_ft" --dataset TOWOD --PREV_INTRODUCED_CLS 20 --CUR_INTRODUCED_CLS 20 \
 #     --train_set "${WANDB_NAME}/learned_owod_t2_ft" --test_set 'owod_all_task_test' --epochs 111 --lr_drop 40\
 #     --model_type 'prob' --obj_loss_coef 8e-4 --obj_temp 1.3\
@@ -57,7 +57,7 @@ $PYTHON_CMD -u main_open_world.py \
     
     
 # PY_ARGS=${@:1}
-# python -u main_open_world.py \
+# $PYTHON_CMD -u main_open_world.py \
 #     --output_dir "${EXP_DIR}/t3" --dataset TOWOD --PREV_INTRODUCED_CLS 40 --CUR_INTRODUCED_CLS 20\
 #     --train_set 'owod_t3_train' --test_set 'owod_all_task_test' --epochs 121\
 #     --model_type 'prob' --obj_loss_coef 8e-4 --freeze_prob_model --obj_temp 1.3\
@@ -69,7 +69,7 @@ $PYTHON_CMD -u main_open_world.py \
     
     
 # PY_ARGS=${@:1}
-# python -u main_open_world.py \
+# $PYTHON_CMD -u main_open_world.py \
 #     --output_dir "${EXP_DIR}/t3_ft" --dataset TOWOD --PREV_INTRODUCED_CLS 40 --CUR_INTRODUCED_CLS 20 \
 #     --train_set "${WANDB_NAME}/learned_owod_t3_ft" --test_set 'owod_all_task_test' --epochs 181 --lr_drop 35\
 #     --model_type 'prob' --obj_loss_coef 8e-4 --obj_temp 1.3\
@@ -79,7 +79,7 @@ $PYTHON_CMD -u main_open_world.py \
     
     
 # PY_ARGS=${@:1}
-# python -u main_open_world.py \
+# $PYTHON_CMD -u main_open_world.py \
 #     --output_dir "${EXP_DIR}/t4" --dataset TOWOD --PREV_INTRODUCED_CLS 60 --CUR_INTRODUCED_CLS 20\
 #     --train_set 'owod_t4_train' --test_set 'owod_all_task_test' --epochs 191 \
 #     --model_type 'prob' --obj_loss_coef 8e-4 --freeze_prob_model --obj_temp 1.3\
@@ -92,7 +92,7 @@ $PYTHON_CMD -u main_open_world.py \
     
     
 # PY_ARGS=${@:1}
-# python -u main_open_world.py \
+# $PYTHON_CMD -u main_open_world.py \
 #     --output_dir "${EXP_DIR}/t4_ft" --dataset TOWOD --PREV_INTRODUCED_CLS 60 --CUR_INTRODUCED_CLS 20\
 #     --train_set "${WANDB_NAME}/learned_owod_t4_ft" --test_set 'owod_all_task_test' --epochs 261 --lr_drop 50\
 #     --model_type 'prob' --obj_loss_coef 8e-4 --obj_temp 1.3\
