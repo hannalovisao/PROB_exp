@@ -9,10 +9,12 @@ import torch
 import logging
 from util.misc import all_gather
 from collections import OrderedDict, defaultdict
+from bisect import bisect_left
 
 
 class OWEvaluator:
-    def __init__(self, voc_gt, iou_types, args=None, use_07_metric=True, ovthresh=list(range(50, 100, 5))):
+    def __init__(self, voc_gt, iou_types, args=None, use_07_metric=True, ovthresh=list(range(50, 100, 5)), 
+                 size_thresholds=[100, 250, 500, 1000, 10000, 100000, 1e10]):
         assert tuple(iou_types) == ('bbox',)
         self.use_07_metric = use_07_metric
         self.ovthresh = ovthresh
@@ -48,6 +50,10 @@ class OWEvaluator:
             print(self.unknown_class_index)
             print(self.known_classes)
             print(self.voc_gt.CLASS_NAMES)
+
+        self.size_thresholds = size_thresholds
+        self.objects_per_size = np.zeros(len(self.size_thresholds), dtype=int)
+        self.found_objcts_per_size = np.zeros(len(self.size_thresholds), dtype=int)
 
 
     def update(self, predictions):
@@ -133,8 +139,10 @@ class OWEvaluator:
             ovthresh_ind, _ = map(self.ovthresh.index, [50, 75])
            
             self.rec, self.prec, self.AP[class_label_ind, ovthresh_ind], self.unk_det_as_known, \
-                self.num_unk, self.tp_plus_fp_closed_set, self.fp_open_set = voc_eval(lines_by_class, \
-                self.voc_gt.annotations, self.voc_gt.image_set, class_label, ovthresh=ovthresh / 100.0, use_07_metric=self.use_07_metric, known_classes=self.known_classes) #[-1]
+                self.num_unk, self.tp_plus_fp_closed_set, self.fp_open_set, \
+                obj_per_size, found_obj_per_size = voc_eval(lines_by_class, \
+                self.voc_gt.annotations, self.voc_gt.image_set, class_label, ovthresh=ovthresh / 100.0,\
+                use_07_metric=self.use_07_metric, known_classes=self.known_classes, size_thresholds=self.size_thresholds) #[-1]
             
             self.AP[class_label_ind, ovthresh_ind] = self.AP[class_label_ind, ovthresh_ind] * 100
             self.all_recs[ovthresh].append(self.rec)
@@ -149,6 +157,11 @@ class OWEvaluator:
             except:
                 self.recs[ovthresh].append(0.)
                 self.precs[ovthresh].append(0.)
+
+            if obj_per_size is not None: # is None if it is the unknown class. 
+                self.objects_per_size = [x + y for x, y in zip(self.objects_per_size, obj_per_size)]
+            if found_obj_per_size is not None:
+                self.found_objcts_per_size = [x + y for x, y in zip(self.found_objcts_per_size, found_obj_per_size)]
 
     def summarize(self, fmt='{:.06f}'):
         o50, _ = map(self.ovthresh.index, [50, 75])
@@ -191,6 +204,11 @@ class OWEvaluator:
         self.coco_eval['bbox'].stats = torch.cat(
             [self.AP[:, o50].mean(dim=0, keepdim=True),
              self.AP.flatten().mean(dim=0, keepdim=True), self.AP.flatten()])
+        
+        print("size_thresholds: ", self.size_thresholds)
+        print("objects_per_size: ", self.objects_per_size)
+        print("detected_objcts_per_size: ", self.found_objcts_per_size)
+        print("Recall per size class: ", [np.round(x/y, 4) for x, y in zip(self.found_objcts_per_size, self.objects_per_size)])
         
         Res  = {
             "WI":wi[0.8][50],
@@ -290,6 +308,7 @@ def voc_eval(detpath,
              annopath,
              imagesetfile,
              classname,
+             size_thresholds=[100, 1000, 10000, 100000],
              ovthresh=0.5,
              use_07_metric=False,
              known_classes=None):
@@ -363,17 +382,27 @@ def voc_eval(detpath,
             recs[imagename] = parse_rec(annopath.format(imagename), tuple(known_classes))
 
     # extract gt objects for this class
+    objects_per_size = np.zeros(len(size_thresholds), dtype=int)
     class_recs = {}
     npos = 0
     for imagename in imagenames:
         R = [obj for obj in recs[imagename] if obj['name'] == classname]
         bbox = np.array([x['bbox'] for x in R])
+
+        object_sizes = np.zeros(len(bbox), dtype=int)
+        for i, b in enumerate(bbox):
+            area = (b[2] - b[0] + 1) * (b[3] - b[1] + 1)
+            size_class = bisect_left(size_thresholds, area)
+            object_sizes[i] = size_class
+            objects_per_size[size_class] += 1
+
         difficult = np.array([x['difficult'] for x in R]).astype(bool)
         det = [False] * len(R)
         npos = npos + sum(~difficult)
         class_recs[imagename] = {'bbox': bbox,
                                  'difficult': difficult,
-                                 'det': det}
+                                 'det': det,
+                                 'size': object_sizes}
 
     # read dets
     if isinstance(detpath, list):
@@ -403,6 +432,8 @@ def voc_eval(detpath,
     image_ids = [image_ids[x] for x in sorted_ind]
 
     # go down dets and mark TPs and FPs
+    found_objects_per_size = np.zeros(len(size_thresholds), dtype=int)
+
     nd = len(image_ids)
     tp = np.zeros(nd)
     fp = np.zeros(nd)
@@ -420,10 +451,13 @@ def voc_eval(detpath,
                 if not R['det'][jmax]:
                     tp[d] = 1.
                     R['det'][jmax] = 1
+                    # Calculate number of objects per size
+                    found_objects_per_size[R['size'][jmax]] += 1 
                 else:
                     fp[d] = 1.
         else:
             fp[d] = 1.
+
 
     # compute precision recall
     fp = np.cumsum(fp)
@@ -433,6 +467,8 @@ def voc_eval(detpath,
     # ground truth
     prec = tp / np.maximum(tp + fp, np.finfo(np.float64).eps)
     ap = voc_ap(rec, prec, use_07_metric)
+    # recall for each size_class
+
 
     '''
     Computing Absolute Open-Set Error (A-OSE) and Wilderness Impact (WI)
@@ -454,7 +490,7 @@ def voc_eval(detpath,
         unknown_class_recs[imagename] = {"bbox": bbox, "difficult": difficult, "det": det}
 
     if classname == 'unknown':
-        return rec, prec, ap, 0., n_unk, None, None
+        return rec, prec, ap, 0., n_unk, None, None, None, None
 
     # Go down each detection and see if it has an overlap with an unknown object.
     # If so, it is an unknown object that was classified as known.
@@ -496,7 +532,7 @@ def voc_eval(detpath,
 
     # import pdb;pdb.set_trace()
 
-    return rec, prec, ap, is_unk_sum, n_unk, tp_plus_fp_closed_set, fp_open_set
+    return rec, prec, ap, is_unk_sum, n_unk, tp_plus_fp_closed_set, fp_open_set, objects_per_size, found_objects_per_size
 
 
 def bbox_nms(boxes, scores, overlap_threshold=0.4, score_threshold=0.0, mask=False):
