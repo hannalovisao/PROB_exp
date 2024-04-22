@@ -144,6 +144,7 @@ class OWDetection(VisionDataset):
     def __init__(self,
                  args,
                  root,
+                 annotations_folder,
                  image_set='train',
                  transforms=None,
                  filter_pct=-1,
@@ -159,9 +160,10 @@ class OWDetection(VisionDataset):
         self.MAX_NUM_OBJECTS = 64
         self.args = args
         self.dataset=dataset
+        self.annotations_folder = annotations_folder
 
         self.root=str(root)
-        annotation_dir = os.path.join(self.root, 'Annotations')
+        annotation_dir = os.path.join(self.root, self.annotations_folder)
         image_dir = os.path.join(self.root, 'JPEGImages')
 
         file_names = self.extract_fns(image_set, self.root)

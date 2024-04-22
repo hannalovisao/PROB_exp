@@ -135,6 +135,7 @@ def get_args_parser():
     parser.add_argument('--nc_epoch', default=0, type=int)
     parser.add_argument('--dataset', default='ZOD', help='defines which dataset is used. Built for: {TOWOD, OWDETR, VOC2007}') #Changed from OWDETR to ZOD 
     parser.add_argument('--data_root', default='./data/OWOD', type=str)
+    parser.add_argument('--annotations_folder', default='Annotations', type=str)
     parser.add_argument('--unk_conf_w', default=1.0, type=float)
 
     ################ PROB OWOD ################
@@ -400,8 +401,8 @@ def get_datasets(args):
 
     train_set = args.train_set
     test_set = args.test_set
-    dataset_train = OWDetection(args, args.data_root, image_set=args.train_set, transforms=make_coco_transforms(args.train_set), dataset = args.dataset)
-    dataset_val = OWDetection(args, args.data_root, image_set=args.test_set, dataset = args.dataset, transforms=make_coco_transforms(args.test_set))
+    dataset_train = OWDetection(args, args.data_root, args.annotations_folder, image_set=args.train_set, transforms=make_coco_transforms(args.train_set), dataset = args.dataset)
+    dataset_val = OWDetection(args, args.data_root, args.annotations_folder, image_set=args.test_set, dataset = args.dataset, transforms=make_coco_transforms(args.test_set))
 
     print(args.train_set)
     print(args.test_set)
