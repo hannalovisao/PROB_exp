@@ -25,6 +25,7 @@ from util.box_ops import box_xyxy_to_cxcywh, box_cxcywh_to_xyxy
 from util.plot_utils import plot_prediction
 import matplotlib.pyplot as plt
 from copy import deepcopy
+import json
 
 
 def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
@@ -97,7 +98,7 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
 
 ## ORIGINAL FUNCTION
 @torch.no_grad()
-def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, output_dir, args):
+def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, output_dir, args, wandb=None):
     model.eval()
     criterion.eval()
     metric_logger = utils.MetricLogger(delimiter="  ")
@@ -112,7 +113,9 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
             data_loader.dataset.ann_folder,
             output_dir=os.path.join(output_dir, "panoptic_eval"),
         )
- 
+    
+    all_det=[]
+
     for samples, targets in metric_logger.log_every(data_loader, 10, header):
         samples = samples.to(device)
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
@@ -120,6 +123,7 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
 
         orig_target_sizes = torch.stack([t["orig_size"] for t in targets], dim=0)
         results = postprocessors['bbox'](outputs, orig_target_sizes)
+        all_det+=results
  
         if 'segm' in postprocessors.keys():
             target_sizes = torch.stack([t["size"] for t in targets], dim=0)
@@ -137,6 +141,49 @@ def evaluate(model, criterion, postprocessors, data_loader, base_ds, device, out
                 res_pano[i]["file_name"] = file_name
  
             panoptic_evaluator.update(res_pano)
+
+        #Calculate losses
+        loss_dict = criterion(outputs, targets) 
+        weight_dict = deepcopy(criterion.weight_dict)
+        
+        ## condition for starting nc loss computation after certain epoch so that the F_cls branch has the time
+        ## to learn the within classes seperation.
+        # if epoch < nc_epoch: 
+        #     for k,v in weight_dict.items():
+        #         if 'NC' in k:
+        #             weight_dict[k] = 0
+            
+        losses = sum(loss_dict[k] * weight_dict[k] for k in loss_dict.keys() if k in weight_dict)
+        # reduce losses over all GPUs for logging purposes
+
+        loss_dict_reduced = utils.reduce_dict(loss_dict)
+        ## Just printing NOt affectin gin loss function
+        loss_dict_reduced_unscaled = {f'{k}_unscaled_eval': v
+                                        for k, v in loss_dict_reduced.items()}
+        loss_dict_reduced_scaled = {f'{k}_eval': v * weight_dict[k]
+                                    for k, v in loss_dict_reduced.items() if k in weight_dict}
+        losses_reduced_scaled = sum(loss_dict_reduced_scaled.values())
+
+        loss_value = losses_reduced_scaled.item()
+
+
+        if wandb is not None:
+            wandb.log({"total_loss_eval":loss_value})
+            wandb.log(loss_dict_reduced_scaled)
+            wandb.log(loss_dict_reduced_unscaled)
+
+    # save detections to file
+    all_det_jsonified = []
+    for item in all_det:
+        converted_dict = {key: value.cpu().numpy().tolist() for key, value in item.items()}
+        all_det_jsonified.append(converted_dict)
+
+    if args.dets_out_dir is not None:
+        #print('all_det: ', all_det)
+        os.makedirs(args.dets_out_dir, exist_ok=True)
+        dets_out_path = os.path.join(args.dets_out_dir, args.dets_filename)
+        with open(dets_out_path, 'w', encoding='utf-8') as f:
+            json.dump(all_det_jsonified, f, ensure_ascii=False, indent=4)
  
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()

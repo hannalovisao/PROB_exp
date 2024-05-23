@@ -137,6 +137,8 @@ def get_args_parser():
     parser.add_argument('--data_root', default='./data/OWOD', type=str)
     parser.add_argument('--annotations_folder', default='Annotations', type=str)
     parser.add_argument('--unk_conf_w', default=1.0, type=float)
+    parser.add_argument('--dets_out_dir', default=None, type=str)
+    parser.add_argument('--dets_filename', default='dets.json', type=str)
 
     ################ PROB OWOD ################
     # model config
@@ -346,7 +348,8 @@ def main(args):
             # extra checkpoint before LR drop and every 5 epochs
             if (epoch + 1) % args.lr_drop == 0 or (epoch % args.eval_every == 0 or epoch == 0 or epoch == 1 or (args.epochs-epoch)<1):
                 test_stats, coco_evaluator = evaluate(
-                    model, criterion, postprocessors, data_loader_val, base_ds, device, args.output_dir, args)
+                    model, criterion, postprocessors, data_loader_val, base_ds, device, args.output_dir, args, wandb=wandb)
+                    #model, criterion, postprocessors, data_loader_val, base_ds, device, args.output_dir, args)
                 checkpoint_paths.append(output_dir / f'checkpoint{epoch:04}.pth')
                 if wandb is not None:
                     test_stats["metrics"]['epoch']=epoch
